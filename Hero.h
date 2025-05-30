@@ -4,21 +4,31 @@
 #include <string>
 
 class Hero {
+public:
+    Hero(const std::string& name);
+    Hero(const std::string& name, int level, int hp, int xp, int damage);
+    void gainXP(int xp);
+    void attack(class Enemy& enemy);
+    void printStatus() const;
+
+    const std::string& getName() const;
+    int getHP() const;
+    int getLevel() const;
+    int getXP() const;
+    int getDamage() const;
+    bool isAlive() const;
+
+    std::string serialize() const;
+    static Hero deserialize(const std::string& data);
+
 private:
     std::string name;
     int xp;
     int level;
-    int hitpoints;
-    int strength;
+    int hp;
+    int damage;
 
-public:
-    Hero();
-    Hero(std::string name, int level, int hitpoints, int strength);
-
-    void saveHero() const;
-    bool loadHero(const std::string &heroName);
-    void displayStats() const;
+    void levelUp();
 };
 
-#endif // HERO_H
-
+#endif

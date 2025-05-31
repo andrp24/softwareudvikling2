@@ -1,58 +1,43 @@
 #include "Hero.h"
-#include "Enemy.h"
 #include <iostream>
-#include <sstream>
 
-Hero::Hero(const std::string& name)
-    : name(name), xp(0), level(1), hp(10), damage(2) {}
+Hero::Hero(std::string n, int h, int l, int x, int g, int str)
+    : name(n), hp(h), maxHp(h), level(l), xp(x), gold(g), strength(str) {}
 
-Hero::Hero(const std::string& name, int level, int hp, int xp, int damage)
-    : name(name), level(level), hp(hp), xp(xp), damage(damage) {}
-
-void Hero::gainXP(int xpGained) {
-    if (xpGained > 0) xp += xpGained;
-    else hp += xpGained;
-    if (xp >= level * 1000) levelUp();
+void Hero::gainXP(int amount) {
+    xp += amount;
+    levelUp();
 }
 
-void Hero::attack(Enemy& enemy) {
-    enemy.takeDamage(damage);
-    if (!enemy.isAlive()) gainXP(enemy.getXP());
+void Hero::gainGold(int amount) {
+    gold += amount;
 }
 
 void Hero::levelUp() {
-    xp = 0;
-    level++;
-    hp += 2;
-    damage++;
-    std::cout << name << " leveled up to level " << level << "!\n";
+    while (xp >= level * 1000) {
+        xp -= level * 1000;
+        level++;
+        std::cout << " Level up! You reached level " << level << "!\n";
+        std::cout << "Choose your upgrade:\n(1) +5 HP\n(2) +2 Strength\n> ";
+        int choice;
+        std::cin >> choice;
+        std::cin.ignore();
+        if (choice == 1) {
+            maxHp += 5;
+            std::cout << "Your max HP increased to " << maxHp << "!\n";
+        } else {
+            strength += 2;
+            std::cout << "Your strength increased to " << strength << "!\n";
+        }
+        hp = maxHp;
+    }
 }
 
-void Hero::printStatus() const {
-    std::cout << name << " (Level: " << level << ", HP: " << hp << ", XP: " << xp << ")\n";
+void Hero::restoreHP() {
+    hp = maxHp;
 }
 
-const std::string& Hero::getName() const { return name; }
-int Hero::getHP() const { return hp; }
-int Hero::getLevel() const { return level; }
-int Hero::getXP() const { return xp; }
-int Hero::getDamage() const { return damage; }
-bool Hero::isAlive() const { return hp > 0; }
-
-std::string Hero::serialize() const {
-    std::ostringstream oss;
-    oss << name << "," << level << "," << hp << "," << xp << "," << damage;
-    return oss.str();
-}
-
-Hero Hero::deserialize(const std::string& data) {
-    std::istringstream iss(data);
-    std::string name;
-    int level, hp, xp, damage;
-    std::getline(iss, name, ',');
-    iss >> level; iss.ignore();
-    iss >> hp; iss.ignore();
-    iss >> xp; iss.ignore();
-    iss >> damage;
-    return Hero(name, level, hp, xp, damage);
+void Hero::display() {
+    std::cout << name << " - HP: " << hp << "/" << maxHp << ", Level: " << level
+              << ", XP: " << xp << ", Gold: " << gold << ", Strength: " << strength << "\n";
 }

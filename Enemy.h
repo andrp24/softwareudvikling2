@@ -5,22 +5,13 @@
 
 class Enemy {
 public:
-    Enemy(const std::string& name, int hp, int damage, int xp);
-
-    const std::string& getName() const;
-    int getHP() const;
-    int getDamage() const;
-    int getXP() const;
-    bool isAlive() const;
-
-    void takeDamage(int dmg);
-    void printStatus() const;
-
-private:
     std::string name;
     int hp;
-    int damage;
-    int xp;
+    int strength;
+    int xpReward;
+    int goldReward;
+
+    Enemy(std::string n, int h, int s, int xp, int gold);
 };
 
 #endif

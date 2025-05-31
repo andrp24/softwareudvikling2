@@ -5,30 +5,20 @@
 
 class Hero {
 public:
-    Hero(const std::string& name);
-    Hero(const std::string& name, int level, int hp, int xp, int damage);
-    void gainXP(int xp);
-    void attack(class Enemy& enemy);
-    void printStatus() const;
-
-    const std::string& getName() const;
-    int getHP() const;
-    int getLevel() const;
-    int getXP() const;
-    int getDamage() const;
-    bool isAlive() const;
-
-    std::string serialize() const;
-    static Hero deserialize(const std::string& data);
-
-private:
     std::string name;
-    int xp;
-    int level;
     int hp;
-    int damage;
+    int maxHp;
+    int level;
+    int xp;
+    int gold;
+    int strength;
 
+    Hero(std::string name, int hp = 10, int level = 1, int xp = 0, int gold = 0, int strength = 2);
+    void gainXP(int amount);
+    void gainGold(int amount);
     void levelUp();
+    void restoreHP();
+    void display();
 };
 
 #endif

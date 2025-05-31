@@ -1,95 +1,92 @@
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <sstream>
 #include "Hero.h"
 #include "Enemy.h"
+#include "Database.h"
+#include <iostream>
+#include <vector>
 
-void printEnemies(const std::vector<Enemy>& enemies) {
-    for (size_t i = 0; i < enemies.size(); ++i) {
-        std::cout << i + 1 << ". ";
-        enemies[i].printStatus();
-    }
+Hero createNewHero() {
+    std::string name;
+    std::cout << "Enter your hero's name: ";
+    std::getline(std::cin, name);
+    Hero hero(name);
+    Database::saveHero(hero);
+    return hero;
 }
 
-void saveHero(const Hero& hero) {
-    std::ofstream file("heroes.txt", std::ios::app);
-    file << hero.serialize() << "\n";
+Hero loadExistingHero() {
+    std::cout << "Available heroes:\n";
+    Database::listHeroes();
+    std::string name;
+    std::cout << "Enter name to load: ";
+    std::getline(std::cin, name);
+    return Database::loadHero(name);
 }
 
-Hero loadHero() {
-    std::ifstream file("heroes.txt");
-    std::vector<std::string> heroes;
-    std::string line;
-    int index = 1;
-    while (std::getline(file, line)) {
-        std::cout << index++ << ": " << line << "\n";
-        heroes.push_back(line);
+std::vector<Enemy> createEnemyList() {
+    return {
+        Enemy("Weak Goblin", 4, 2, 200, 20),
+        Enemy("Strong Goblin", 8, 4, 400, 50),
+        Enemy("Stronger Goblin", 10, 6, 500, 70),
+        Enemy("Mighty Goblin", 12, 8, 600, 100),
+        Enemy("KingApe", 20, 10, 1000, 200)
+    };
+}
+
+void fightEnemy(Hero& hero, Enemy enemy) {
+    std::cout << "You are fighting: " << enemy.name << " with " << enemy.hp << " hp\n";
+    while (hero.hp > 0 && enemy.hp > 0) {
+        enemy.hp -= hero.strength;
+        if (enemy.hp > 0) {
+            hero.hp -= enemy.strength;
+        }
     }
-    std::cout << "Choose hero to load: ";
-    int choice;
-    std::cin >> choice;
-    return Hero::deserialize(heroes[choice - 1]);
+
+    if (hero.hp > 0) {
+        std::cout << "You won!\n";
+        hero.gainXP(enemy.xpReward);
+        hero.gainGold(enemy.goldReward);
+    } else {
+        std::cout << "You were defeated!\n";
+    }
+
+    hero.restoreHP(); // Reset HP after battle
+    Database::saveHero(hero);
 }
 
 int main() {
-    Hero hero("Default");
-    bool running = true;
+    Database::initDB();
+    Hero hero("");
 
-    while (running) {
-        std::cout << "\n1. Create new hero\n2. Load hero\n3. Exit\nChoice: ";
-        int menuChoice;
-        std::cin >> menuChoice;
-        if (menuChoice == 1) {
-            std::string name;
-            std::cout << "Enter hero name: ";
-            std::cin >> name;
-            hero = Hero(name);
-            saveHero(hero);
-        } else if (menuChoice == 2) {
-            hero = loadHero();
-        } else {
-            return 0;
+    std::cout << "(0) New Game  (1) Load Game: ";
+    int choice;
+    std::cin >> choice;
+    std::cin.ignore(); // flush newline
+
+    if (choice == 0) {
+        hero = createNewHero();
+    } else {
+        hero = loadExistingHero();
+    }
+
+    std::vector<Enemy> enemies = createEnemyList();
+
+    while (true) {
+        std::cout << "\n";
+        hero.display();
+        std::cout << "Choose enemy to fight:\n";
+        for (size_t i = 0; i < enemies.size(); ++i) {
+            std::cout << i << ": " << enemies[i].name << "\n";
         }
+        std::cout << "Your choice (or 9 to quit): ";
+        int enemyIndex;
+        std::cin >> enemyIndex;
+        std::cin.ignore();
 
-        std::vector<Enemy> enemies = {
-            {"Hest", 4, 1, 100},
-            {"Weak Goblin", 4, 2, 200},
-            {"Strong Goblin", 8, 4, 300},
-            {"Stronger Goblin", 10, 8, 500},
-            {"Den stærkeste Goblin", 15, 5, 800},
-            {"Abe Kongen", 30, 5, 1000},
-            {"Enhjørning", 5, 8, 1500}
-        };
-
-        while (hero.isAlive()) {
-            std::cout << "\nHero status: ";
-            hero.printStatus();
-
-            std::cout << "\nEnemies:\n";
-            printEnemies(enemies);
-
-            std::cout << "Choose enemy to fight (0 to save and exit): ";
-            int choice;
-            std::cin >> choice;
-
-            if (choice == 0) {
-                saveHero(hero);
-                break;
-            }
-            if (choice < 1 || choice > enemies.size()) continue;
-
-            Enemy& enemy = enemies[choice - 1];
-            while (enemy.isAlive() && hero.isAlive()) {
-                hero.attack(enemy);
-                if (enemy.isAlive()) {
-                    std::cout << enemy.getName() << " attacks back!\n";
-                    hero.gainXP(-enemy.getDamage());
-                }
-            }
+        if (enemyIndex == 9) break;
+        if (enemyIndex >= 0 && enemyIndex < enemies.size()) {
+            fightEnemy(hero, enemies[enemyIndex]);
         }
     }
 
-    std::cout << "Game Over.\n";
     return 0;
 }

@@ -2,6 +2,8 @@
 #define HERO_H
 
 #include <string>
+#include <map>
+#include "Weapon.h"
 
 class Hero {
 public:
@@ -12,13 +14,18 @@ public:
     int xp;
     int gold;
     int strength;
+    int totalKills;
+    int weaponKills;
+    Weapon* weapon;
+    std::map<std::string, int> weaponKillHistory; // våben-historik
 
-    Hero(std::string name, int hp = 10, int level = 1, int xp = 0, int gold = 0, int strength = 2);
+    Hero(std::string name);
+
     void gainXP(int amount);
     void gainGold(int amount);
     void levelUp();
-    void restoreHP();
-    void display();
+    void equipWeapon(Weapon* newWeapon);
+    int attack() const;
 };
 
 #endif

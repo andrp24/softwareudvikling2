@@ -1,43 +1,54 @@
 #include "Hero.h"
 #include <iostream>
+#include <cmath>
 
-Hero::Hero(std::string n, int h, int l, int x, int g, int str)
-    : name(n), hp(h), maxHp(h), level(l), xp(x), gold(g), strength(str) {}
+Hero::Hero(std::string name)
+    : name(name), hp(10), maxHp(10), level(1), xp(0), gold(0), strength(2),
+      totalKills(0), weaponKills(0), weapon(nullptr) {}
 
 void Hero::gainXP(int amount) {
     xp += amount;
-    levelUp();
+    std::cout << "You gain " << amount << " XP!\n";
+
+    while (xp >= level * 1000) {
+        xp -= level * 1000;
+        levelUp();
+    }
 }
 
 void Hero::gainGold(int amount) {
     gold += amount;
+    std::cout << "You gain " << amount << " gold!\n";
 }
 
 void Hero::levelUp() {
-    while (xp >= level * 1000) {
-        xp -= level * 1000;
-        level++;
-        std::cout << " Level up! You reached level " << level << "!\n";
-        std::cout << "Choose your upgrade:\n(1) +5 HP\n(2) +2 Strength\n> ";
-        int choice;
-        std::cin >> choice;
-        std::cin.ignore();
-        if (choice == 1) {
-            maxHp += 5;
-            std::cout << "Your max HP increased to " << maxHp << "!\n";
-        } else {
-            strength += 2;
-            std::cout << "Your strength increased to " << strength << "!\n";
-        }
-        hp = maxHp;
+    level++;
+    std::cout << "You leveled up! Now level " << level << "!\n";
+
+    std::cout << "Choose stat to increase:\n";
+    std::cout << "1. +2 Strength\n";
+    std::cout << "2. +25 Max HP\n";
+    int choice;
+    std::cin >> choice;
+    if (choice == 1) {
+        strength += 2;
+    } else {
+        maxHp += 25;
     }
-}
 
-void Hero::restoreHP() {
     hp = maxHp;
+    std::cout << "HP fully restored!\n";
 }
 
-void Hero::display() {
-    std::cout << name << " - HP: " << hp << "/" << maxHp << ", Level: " << level
-              << ", XP: " << xp << ", Gold: " << gold << ", Strength: " << strength << "\n";
+void Hero::equipWeapon(Weapon* newWeapon) {
+    weapon = newWeapon;
+    std::cout << "Equipped weapon: " << weapon->getName() << "\n";
+}
+
+int Hero::attack() const {
+    if (weapon && !weapon->isBroken()) {
+        return weapon->getBaseDamage() + static_cast<int>(strength * weapon->getStrengthModifier());
+    } else {
+        return strength;
+    }
 }

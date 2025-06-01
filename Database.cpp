@@ -7,7 +7,8 @@ void Database::init() {
     if (sqlite3_open("game.db", &db)) {
         std::cerr << "Can't open DB\n";
         return;
-     }
+    }
+
     const char* createHeroTable =
         "CREATE TABLE IF NOT EXISTS heroes ("
         "name TEXT PRIMARY KEY,"
@@ -20,7 +21,9 @@ void Database::init() {
         "totalKills INTEGER,"
         "weaponKills INTEGER"
         ");";
+
     sqlite3_exec(db, createHeroTable, nullptr, nullptr, nullptr);
+
     const char* createKillsTable =
         "CREATE TABLE IF NOT EXISTS weapon_kills ("
         "hero_name TEXT,"
@@ -55,11 +58,14 @@ void Database::saveHero(const Hero& hero) {
     sqlite3_bind_int(stmt, 7, hero.strength);
     sqlite3_bind_int(stmt, 8, hero.totalKills);
     sqlite3_bind_int(stmt, 9, hero.weaponKills);
+
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         std::cerr << "Failed to save hero.\n";
     }
+
     sqlite3_finalize(stmt);
-    // gem våben kills
+
+    // Save weapon kills
     const char* insertKill = "REPLACE INTO weapon_kills (hero_name, weapon_name, kills) VALUES (?, ?, ?);";
     sqlite3_stmt* killStmt;
     sqlite3_prepare_v2(db, insertKill, -1, &killStmt, nullptr);
@@ -137,7 +143,7 @@ std::vector<Hero> Database::getAllHeroes() {
         h.totalKills = sqlite3_column_int(stmt, 7);
         h.weaponKills = sqlite3_column_int(stmt, 8);
 
-        // Load våben kills for hver helt
+        // Load weapon kills for each hero
         const char* loadKills = "SELECT weapon_name, kills FROM weapon_kills WHERE hero_name = ?;";
         sqlite3_stmt* loadStmt;
         sqlite3_prepare_v2(db, loadKills, -1, &loadStmt, nullptr);
@@ -157,3 +163,4 @@ std::vector<Hero> Database::getAllHeroes() {
     sqlite3_close(db);
     return heroes;
 }
+
